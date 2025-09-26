@@ -24,8 +24,7 @@
 Abstract
 ========
 
-Purus sit amet luctus venenatis lectus magna fringilla. Condimentum id venenatis a condimentum vitae sapien. Auctor neque vitae tempus quam pellentesque nec nam aliquam. Eget egestas purus viverra accumsan in. Nam aliquam sem et tortor. Donec et odio pellentesque diam volutpat commodo. Odio pellentesque diam volutpat commodo sed egestas. Sit amet dictum sit amet justo. Pellentesque sit amet porttitor eget. Imperdiet sed euismod nisi porta lorem mollis aliquam ut. Quis varius quam quisque id diam vel quam elementum. Ornare lectus sit amet est placerat in. Vulputate dignissim suspendisse in est ante. Elit sed vulputate mi sit amet mauris. Egestas sed tempus urna et pharetra pharetra. Viverra tellus in hac habitasse platea dictumst vestibulum rhoncus.
-
+В работе исследуется применение классических методов компьютерного зрения для регуляризации процесса генерации в диффузионных моделях. Предлагается использовать структурные дескрипторы, такие как диаграмма Вороного, медиальная ось и контурный анализ, для наложения ограничений на процесс денойзинга. Это позволяет генерировать изображения с улучшенной структурной целостностью, топологической точностью и четкими границами объектов. Эксперименты показывают, что предложенный подход эффективно подавляет артефакты генерации и повышает семантическую согласованность выходных данных, особенно в задачах, требующих точного воспроизведения геометрии сцены.
 Research publications
 ===============================
 1. 
