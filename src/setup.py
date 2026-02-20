@@ -22,11 +22,11 @@ setup(
     name='mylib',
     version=__version__,
     license='MIT',
-    author='Andrey Grabovoy',
-    author_email="grabovoy.av@phystech.edu",
+    author='Ruslan Voyt',
+    author_email="voytra@my.msu.ru",
     description='mylib, python package',
     long_description=readme,
-    url='https://github.com/Intelligent-Systems-Phystech/ProjectTemplate',
+    url='https://github.com/VoytRuslan/M1P',
 
     # options
     packages=find_packages(),
