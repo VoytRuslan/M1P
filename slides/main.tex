@@ -22,39 +22,26 @@
 \usepackage{mathtools}
 \usepackage{comment}
 \usepackage{multicol}
-
-\usepackage[all]{xy}
-
+\usepackage{graphicx}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows}
 
-\tikzstyle{name} = [parameters]
-\definecolor{name}{rgb}{0.5,0.5,0.5}
+\usepackage[all]{xy}
 
-\usepackage{caption}
-\captionsetup{skip=0pt,belowskip=0pt}
-
-\newtheorem{rustheorem}{Теорема}
-\newtheorem{russtatement}{Утверждение}
-\newtheorem{rusdefinition}{Определение}
-
-% colors
 \definecolor{darkgreen}{rgb}{0.0, 0.2, 0.13}
 \definecolor{darkcyan}{rgb}{0.0, 0.55, 0.55}
 
 \AtBeginEnvironment{figure}{\setcounter{subfigure}{0}}
-
 \captionsetup[subfloat]{labelformat=empty}
 
 %----------------------------------------------------------------------------------------------------------
+\title[Гибридное распознавание рукописного текста]{Гибридный подход к распознаванию рукописного текста}
 
-\title[Пример слайдов по работе]{Пример слайдов по работе \\ курса}
-\author{И.\,О.\,Фамилия}
+\author{Войт Руслан Александрович \and д.т.н., проф. Местецкий Л.М.}
 
-\institute[]{Московский физико-технический институт}
-\date[2022]{\small 10\;февраля\;2022\,г.}
+\institute[]{МГУ имени М.В. Ломоносова, факультет ВМК, кафедра ММП}
+\date{20 февраля 2026 г.}
 
-%---------------------------------------------------------------------------------------------------------
 \begin{document}
 
 \begin{frame}
@@ -62,131 +49,266 @@
 \end{frame}
 
 %----------------------------------------------------------------------------------------------------------
-\section{Слайд об исследованиях}
-\begin{frame}{Слайд об исследованиях}
-\bigskip
-Исследуется проблема \ldots.
-\begin{block}{Цель исследования~---}
-предложить метод \ldots.
-\end{block}
-\begin{block}{Требуется предложить}
-\justifying
-\begin{enumerate}[1)]
-\item метод \ldots,
-\item метод \ldots,
-\item метод \ldots.
-\end{enumerate}
-\end{block}
-\begin{block}{Решение}
-Для \ldots.
-\end{block}
-\end{frame}
+\begin{frame}{Задача распознавания рукописного текста}
+\begin{itemize}
+    \item Построить отображение изображения в последовательность символов:
+    \[
+    I \in \mathbb{R}^{H\times W} \;\longrightarrow\; Y = (y_1,\dots,y_T).
+    \]
+    \item Основные метрики:
+    \[
+    \text{CER} = \frac{\rho_{\text{Левенштейн}}(Y_{\text{ист}},Y_{\text{пред}})}{|Y_{\text{ист}}|}\cdot100\%,
+    \text{WER} = \frac{\rho_{\text{Левенштейн}}(W_{\text{ист}},W_{\text{пред}})}{\text{число слов}}\cdot100\%
+    \]
+    \item Сложности: высокая вариативность почерков, шумы, малые объёмы размеченных данных (особенно для исторических документов).
+\end{itemize}
 
-%---------------------------------------------------------------------------------------------------------
-\section{Постановка задачи \ldots}
-\begin{frame}{Постановка задачи \ldots}
-Заданы
-\begin{enumerate}[1)]
-    \item признаки \ldots,
-    \item целевая переменная \ldots,
-    \item \ldots.
-\end{enumerate}
+\centering
+\includegraphics[width=0.8\textwidth]{пример_IAM.pdf}
 
-\ldots
-
-\bigskip
-
-Требуется выбрать модель \ldots из множества
-\[
-	\mathfrak{G} = \left\{\mathbf{g}| \mathbf{g}:\mathbb{R}^{n} \to \mathbb{Y}^\prime\right\}.
-\]
-Оптимизационная задача \ldots:
-\[
-	\mathbf{g} = \arg\min_{\mathbf{g} \in \mathfrak{G}} \mathcal{L}\bigr(\ldots\bigr),
-\]
-где $\mathcal{L}$~--- функция ошибки.
-
-\bigskip
-\footnotetext[1]{\textit{Lopez-Paz D., Bottou L., Scholkopf B., Vapnik V.} Unifying distillation and privileged information // ICLR, 2016.}
-\footnotetext[2]{\textit{Hinton G., Vinyals O., Dean J.} Distilling the knowledge in a neural network // NIPS, 2015.}
+{\small Пример из IAM.}
 \end{frame}
 
 %----------------------------------------------------------------------------------------------------------
-\section{Предложенный метод \ldots}
-\begin{frame}{Предложенный метод \ldots}
-~\\[-1mm]
-Заданы
-\begin{enumerate}[1)]
-	\item \ldots,
-	\item \ldots.
+\begin{frame}{Существующие подходы и их ограничения}
+\begin{block}{Растровые модели (CRNN, TrOCR, VAN)}
+    -- Достигают высокого качества на больших корпусах (IAM). \\
+    -- Требуют много размеченных данных, склонны к переобучению на малых выборках. \\
+    -- Не используют геометрию письма.
+\end{block}
+\begin{block}{Гибридные и структурные подходы (InkSight, GCM, GNN на chain codes)}
+    -- Учитывают структуру штрихов, но построение графа часто эвристическое и нестабильное на зашумлённых данных. \\
+    -- Либо не интегрированы с распознаванием.
+\end{block}
+\begin{block}{Наш вклад}
+    Предлагается двухпоточная архитектура с \textbf{математически обоснованным} построением графа штрихов на основе непрерывной морфологии (скелетизация через диаграмму Вороного). Это повышает устойчивость и обобщающую способность.
+\end{block}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Математическая постановка задачи}
+Обучающая выборка: $\mathcal{D} = \{(I^{(n)},Y^{(n)})\}_{n=1}^N$, $I\in\mathbb{R}^{H\times W}$, $Y\in\mathcal{A}^*$.
+Модель $f_\theta$ состоит из:
+\begin{itemize}
+    \item визуального энкодера $E_v$: $V = E_v(I)$,
+    \item графового энкодера $E_g$: $H = E_g(G)$ (граф $G$ строится по $I$),
+    \item механизма слияния $\Phi$: $U = \Phi(V,H)$,
+    \item CTC-декодера $D$: $P(Y|U)$.
+\end{itemize}
+Функция потерь CTC:
+\[
+\mathcal{L}_{\text{CTC}}(Y,U) = -\log\sum_{\pi\in\mathcal{B}^{-1}(Y)}\prod_{t} p_t(\pi_t),\quad
+p_t(\pi_t) = \text{softmax}(W_{\text{ctc}}\,u_t).
+\]
+Оптимизация: $\theta^* = \arg\min_\theta \sum_n \mathcal{L}_{\text{CTC}}(Y^{(n)},U^{(n)}) + \lambda\Omega(\theta)$.
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Общая архитектура гибридной модели}
+\centering
+\begin{tikzpicture}[
+    scale=0.5,
+    transform shape,
+    node distance=1.2cm and 0.8cm,
+    block/.style={rectangle, draw, align=center, minimum width=1.8cm, minimum height=0.9cm, font=\small, thick}
+]
+\usetikzlibrary{calc} % для вычисления координат
+
+% Входное изображение
+\node[block] (img) {Изображение $I$};
+
+% Визуальный поток (верхний)
+\node[block, above right=0.5cm and 2cm of img] (cnn) {Визуальный\\энкодер};
+\node[block, right=of cnn] (V) {$V$};
+
+% Графовый поток (нижний)
+\node[block, below right=0.5cm and 2cm of img] (skel) {Скелетизация\\+ граф};
+\node[block, right=of skel] (gnn) {GNN\\(GraphSAGE)};
+\node[block, right=of gnn] (H) {$H$};
+
+% Слияние (центрируется между V и H)
+\node[block, right=3cm of $(V)!0.5!(H)$] (att) {Кросс-модальное\\внимание};
+
+% Декодирование
+\node[block, right=of att] (U) {$U$};
+\node[block, right=of U] (ctc) {CTC-декодер};
+\node[block, right=of ctc] (text) {Текст $Y$};
+
+% Стрелки
+\draw[->] (img) -- (cnn);
+\draw[->] (img) -- (skel);
+\draw[->] (cnn) -- (V);
+\draw[->] (skel) -- (gnn);
+\draw[->] (gnn) -- (H);
+\draw[->] (V) -- (att);
+\draw[->] (H) -- (att);
+\draw[->] (att) -- (U);
+\draw[->] (U) -- (ctc);
+\draw[->] (ctc) -- (text);
+
+\end{tikzpicture}
+
+\vspace{2mm}
+{\small Рис. 1. Двухпоточная архитектура: визуальный поток (VAN/CNN), графовый поток (скелет $\to$ граф штрихов $\to$ GNN), кросс-модальное внимание, CTC-декодер.}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Визуальный поток}
+\begin{itemize}
+    \item Используется архитектура \textbf{Vertical Attention Network (VAN)} (можно заменить на свёрточную сеть для прототипирования).
+    \item Выход: последовательность визуальных признаков
+    \[
+    V = (v_1,\dots,v_M),\quad v_t\in\mathbb{R}^{d_v}\;(d_v=512).
+    \]
+    \item Внимание по вертикали позволяет фокусироваться на строках и символах.
+\end{itemize}
+\vfill
+\centering
+\includegraphics[width=0.7\textwidth]{OverViewVertAttention.pdf}
+
+{\small Рис. 2. Схема блока вертикального внимания.}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Графовый поток: построение графа штрихов}
+\begin{enumerate}
+    \item Бинаризация изображения.
+    \item Построение скелета (медиального представления) методом непрерывной морфологии на основе диаграммы Вороного \cite{Mestetsky, book}. Скелет -- геометрический граф.
+    \item Штриховая сегментация: разбиение скелета на элементарные фрагменты (штрихи) по топологическим и геометрическим критериям.
+    \item Вершины графа $G$ -- штрихи; рёбра -- общие концевые точки или близость.
 \end{enumerate}
+\centering
+\includegraphics[width=0.72\textwidth]{stroke.pdf}
 
-\medskip
-Параметрические семейства:
-\[
-\setlength\abovedisplayskip{0pt}
-\mathfrak{F} = \left\{\mathbf{f}| \mathbf{f} = \text{softmax}\bigr(\mathbf{v}\bigr(\mathbf{x}\bigr)/T\bigr), \quad \mathbf{v}: \mathbb{R}^{n} \to \mathbb{R}^K \right\},
-\]
-\[
-\mathfrak{G} = \left\{\mathbf{g}| \mathbf{g} = \text{softmax}\bigr(\mathbf{z}\bigr(\mathbf{x}\bigr)/T\bigr), \quad \mathbf{z}: \mathbb{R}^n \to \mathbb{R}^K \right\},
-\]
-где~\ldots.
+{\small Рис. 3. Пример: исходное слово (слева) и его штриховой граф (справа).}
+\end{frame}
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Признаки вершин графа}
+Каждому штриху $s_i$ сопоставляется вектор признаков:
+\begin{itemize}
+    \item геометрические: длина, средняя кривизна, ориентация, координаты центра масс;
+    \item тип штриха (вертикальный/горизонтальный отрезок, дуга, петля) -- one-hot;
+    \item параметры из процесса разложения (радиус вписанной окружности для петель).
+\end{itemize}
+Итоговая матрица признаков $X\in\mathbb{R}^{K\times d_f}$ ($d_f\sim 20$).
+\end{frame}
 
-\medskip
-Функция ошибки
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Графовый энкодер (GraphSAGE)}
+Двухслойная архитектура с агрегацией по соседям:
 \[
-\setlength\abovedisplayskip{0pt}
 \begin{aligned}
-   \mathcal{L}\bigr(\mathbf{g}\bigr) = &-\sum_{i=1}^{m}\underbrace{{\sum_{k=1}^{K}y^k_i\log\mathbf{g}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=1}}}_{\text{исходная функция потерь}}- \sum_{i=1}^{m}\underbrace{{\sum_{k=1}^{K}\mathbf{f}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=T_0}\log\mathbf{g}\bigr(\mathbf{x}_i\bigr)\bigr|_{T=T_0}}}_{\text{слагаемое дистилляции}},
+h_i^{(1)} &= \text{ReLU}\!\left(W_1\cdot\text{CONCAT}\!\bigl(f_i,\;\text{MEAN}\{f_j:j\in\mathcal{N}(i)\}\bigr)\right),\\
+h_i^{(2)} &= \text{ReLU}\!\left(W_2\cdot\text{CONCAT}\!\bigl(h_i^{(1)},\;\text{MEAN}\{h_j^{(1)}:j\in\mathcal{N}(i)\}\bigr)\right).
 \end{aligned}
-\setlength\belowdisplayskip{0pt}
 \]
-где~\ldots.
-
-Оптимальная модель выбирается из класса,
-$\hat{\mathbf{g}} = \arg\min\limits_{\mathbf{g} \in \mathfrak{G}_{\text{cl}}} \mathcal{L}\bigr(\mathbf{g}\bigr).$
+Выход: $H = (h_1^{(2)},\dots,h_K^{(2)})$, $h_i^{(2)}\in\mathbb{R}^{d_h}$ ($d_h=256$).
 \end{frame}
 
 %----------------------------------------------------------------------------------------------------------
-\section{Анализ предложенного метода \ldots}
-\begin{frame}{Анализ предложенного метода \ldots}
-\justifying
-
-На графике показана зависимость значения параметров$w_i$ в зависимости от параметра~$l_1$-регуляризации~$C$.
-\begin{figure}[h!]
-\includegraphics[width=0.45\textwidth]{../figures/log_reg_cs_exp.eps}
-\includegraphics[width=0.45\textwidth]{../figures/log_reg_cs_exp.eps}
-\end{figure}
-
-С увеличением параметра регуляризации~$C$ число ненулевых параметров~$w_i$ уменьшается.
-
+\begin{frame}{Слияние модальностей (кросс-модальное внимание)}
+Проекции:
+\[
+Q = VW_Q,\; K = HW_K,\; V_{\text{val}} = HW_V,\quad W_Q\in\mathbb{R}^{d_v\times d_k},\;W_K\in\mathbb{R}^{d_h\times d_k},\;W_V\in\mathbb{R}^{d_h\times d_v}.
+\]
+Матрица внимания:
+\[
+A = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)\in\mathbb{R}^{M\times K},\quad
+\widetilde{H} = A V_{\text{val}}\in\mathbb{R}^{M\times d_v}.
+\]
+Итоговое представление (конкатенация):
+\[
+U = [V \mid \widetilde{H}] \in\mathbb{R}^{M\times 2d_v}\;\xrightarrow{\text{линейный слой}}\;U'\in\mathbb{R}^{M\times d_v}.
+\]
 \end{frame}
 
 %----------------------------------------------------------------------------------------------------------
-\section{Выводы}
-\begin{frame}{Выводы}
-\justifying
-	\begin{enumerate}
-	\justifying
-	    \item Предложен \ldots.
-        \item Доказаны теоремы \ldots, 
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложен метод \ldots
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложены методы \ldots
-        \begin{itemize}
-            \item[---] \ldots,
-            \item[---] \ldots.
-        \end{itemize}
-        \item Предложена вероятностная интерпретации \ldots.
-	\end{enumerate}
+\begin{frame}{Декодирование и обучение}
+\begin{itemize}
+    \item CTC-декодер: линейный слой + softmax над алфавитом $\mathcal{A}' = \mathcal{A}\cup\{\epsilon\}$.
+    \item Вероятность последовательности $Y$:
+    \[
+    P(Y|U') = \sum_{\pi\in\mathcal{B}^{-1}(Y)}\prod_{t=1}^{M} p_t(\pi_t).
+    \]
+    \item Обучение сквозное, минимизация $\mathcal{L}_{\text{CTC}} + \lambda\|\theta\|_2^2$.
+    \item Оптимизатор Adam, начальный lr = $10^{-3}$, dropout 0.3.
+\end{itemize}
 \end{frame}
-%----------------------------------------------------------------------------------------------------------
 
-\end{document} 
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Эксперименты: настройка}
+\begin{itemize}
+    \item Датасет: подмножество IAM (90\% train, 10\% test).
+    \item Конфигурации:
+    \begin{enumerate}
+        \item Базовая (только визуальный CNN-энкодер) --- \textit{CNN-only}.
+        \item Гибридная (CNN + GNN + внимание) --- \textit{OCRModel}.
+    \end{enumerate}
+    \item Упрощённый визуальный энкодер (CNN) для ускорения.
+    \item Обучение 90 эпох, батч 8, видеокарта P100.
+\end{itemize}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Результаты}
+\centering
+\includegraphics[width=\textwidth,height=0.4\textheight]{hybrid_loss.pdf}
+
+\vspace{2mm}
+{\small Рис. 4. Динамика функции потерь на обучающей и тестовой выборках (30--90 эпохи).}
+
+\vspace{3mm}
+\begin{tabular}{l|c|c}
+\hline
+\textbf{Модель} & \textbf{Train Loss} & \textbf{Test Loss} \\
+\hline
+CNN-only & 3.096 & 3.025 \\
+Гибридная & 3.175 & \textbf{3.009} \\
+\hline
+\end{tabular}
+
+\bigskip
+\begin{itemize}
+    \item Гибридная модель показывает \textbf{лучшее обобщение}.
+    \item Графовый поток выступает в роли регуляризатора, снижая переобучение.
+\end{itemize}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Выводы и перспективы}
+\begin{block}{Основные результаты}
+    \begin{itemize}
+        \item Предложена устойчивая гибридная архитектура с математически обоснованным построением графа штрихов.
+        \item Экспериментально подтверждён регуляризующий эффект графового потока.
+        \item Гибридная модель превосходит чисто визуальный аналог по обобщающей способности.
+    \end{itemize}
+\end{block}
+\begin{block}{Направления дальнейших исследований}
+    \begin{itemize}
+        \item Интеграция полноценного энкодера VAN.
+        \item Расширение экспериментов на исторические коллекции с оценкой CER/WER.
+        \item Исследование двунаправленного внимания.
+    \end{itemize}
+\end{block}
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Спасибо за внимание!}
+\centering
+\Large
+Готов ответить на ваши вопросы.
+\end{frame}
+
+%----------------------------------------------------------------------------------------------------------
+\begin{frame}{Литература}
+\footnotesize
+\begin{thebibliography}{99}
+\bibitem{Mestetsky} Местецкий Л.М. Непрерывная морфология бинарных изображений. — М.: Физматлит // 2009.
+\bibitem{book} Mestetskiy L.M. Continuous Morphology of Binary Images: Figures, Skeletons, and Circular Arcs. — Springer // 2024.
+\bibitem{zykov} Зыков А.Г. и др. Vertical Attention Network для распознавания рукописного текста // 2024.
+\bibitem{GanGCM} Gan J. et al. GCM: Graph-Enhanced Cross-Modal Mutual Learning for Handwritten Text Recognition // 2025.
+\bibitem{sharma2024} Sharma D.K. et al. Graph Neural Networks for Handwriting Recognition // 2024.
+\end{thebibliography}
+\end{frame}
+
+\end{document}
